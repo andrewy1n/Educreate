@@ -16,6 +16,8 @@ async def process_pdf_websocket(websocket: WebSocket):
         file_data = await websocket.receive_bytes()
         file_name = await websocket.receive_text()
 
+        user_preferred_style = await websocket.receive_text()
+
         upload_dir = "uploads"
         os.makedirs(upload_dir, exist_ok=True)
         file_path = os.path.join(upload_dir, file_name)
@@ -28,7 +30,7 @@ async def process_pdf_websocket(websocket: WebSocket):
         # Generate web app description
         await websocket.send_text("Generating web app description...")
         spec_doc = ""
-        async for chunk in idea_agent.generate_web_app_description(file_path):
+        async for chunk in idea_agent.generate_web_app_description(file_path, user_preferred_style):
             await websocket.send_json({"type": "llm_message", "message": chunk})
             spec_doc += chunk
         print(spec_doc)

@@ -87,6 +87,35 @@ async def process_pdf():
     finally:
         progress_dialog.close()
 
+def on_suggestion(message_input: ui.input, chat_messages: ui.column):
+    """Handle suggestion submission"""
+    message = message_input.value
+    if not message.strip():
+        return
+    
+    # Add user message
+    with chat_messages:
+        with ui.row().classes("w-full justify-end"):
+            with ui.card().classes("bg-blue-50 p-2 max-w-[80%]"):
+                ui.label(message).classes("text-sm text-black")
+                ui.label(f"User - {datetime.now().strftime('%H:%M')}").classes("text-xs text-gray-500")
+    
+    # Clear input
+    message_input.value = ""
+    
+    # Mock AI response
+    asyncio.create_task(mock_ai_response(chat_messages))
+
+async def mock_ai_response(chat_messages: ui.column):
+    """Simulate AI response"""
+    await asyncio.sleep(1)
+    
+    # Add system response
+    with chat_messages:
+        with ui.row().classes("w-full justify-start"):
+            with ui.card().classes("bg-white p-2 max-w-[80%]"):
+                ui.label("Thank you for your suggestion! We'll consider this feedback for future improvements.").classes("text-sm text-black")
+                ui.label(f"Assistant - {datetime.now().strftime('%H:%M')}").classes("text-xs text-gray-500")
 @ui.page('/', dark=True)
 def main():
     global app_container, generate_modal
@@ -136,38 +165,6 @@ def main():
                 ui.code().classes("w-full h-full").bind_content(globals(), 'generated_code')
             with ui.tab_panel(desc_tab).classes('h-full'):
                 ui.markdown().classes("w-full h-full overflow-y-auto").bind_content(globals(), 'generated_description')
-
- # Chat suggestion container (right side - 30% width)
-      
-
-def on_suggestion(message_input: ui.input, chat_messages: ui.column):
-    """Handle suggestion submission"""
-    message = message_input.value
-    if not message.strip():
-        return
     
-    # Add user message
-    with chat_messages:
-        with ui.row().classes("w-full justify-end"):
-            with ui.card().classes("bg-blue-50 p-2 max-w-[80%]"):
-                ui.label(message).classes("text-sm text-black")
-                ui.label(f"User - {datetime.now().strftime('%H:%M')}").classes("text-xs text-gray-500")
-    
-    # Clear input
-    message_input.value = ""
-    
-    # Mock AI response
-    asyncio.create_task(mock_ai_response(chat_messages))
-
-async def mock_ai_response(chat_messages: ui.column):
-    """Simulate AI response"""
-    await asyncio.sleep(1)
-    
-    # Add system response
-    with chat_messages:
-        with ui.row().classes("w-full justify-start"):
-            with ui.card().classes("bg-white p-2 max-w-[80%]"):
-                ui.label("Thank you for your suggestion! We'll consider this feedback for future improvements.").classes("text-sm text-black")
-                ui.label(f"Assistant - {datetime.now().strftime('%H:%M')}").classes("text-xs text-gray-500")
 
 ui.run(reload=False)

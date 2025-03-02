@@ -20,11 +20,11 @@ class IdeaAgent:
         except Exception as e:
             raise RuntimeError(f"PDF reading failed: {str(e)}")
 
-    async def generate_web_app_description(self, pdf_path):
+    async def generate_web_app_description(self, pdf_path, user_preferred_style):
         pdf_text = self.extract_pdf_text(pdf_path)
         prompt = (
             "Analyze the content below and generate a detailed description (no code) of a simple single page frontend-focused web application that will be written using the NiceGUI framework in Python"
-            "that will aid me in understanding and learning the concepts. Do not overload on features, only include aspects of the app that are absolutely necessary Include:\n"
+            f"that will aid me, someone who is a {user_preferred_style} learner, in understanding and learning the concepts. Do not overload on features, only include aspects of the app that are absolutely necessary Include:\n"
             "- Purpose and target audience\n"
             "- Key functionalities\n"
             "- User interaction flow\n"
