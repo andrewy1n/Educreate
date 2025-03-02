@@ -297,7 +297,7 @@ def create_main():
             ui.button("Process PDF", icon="start", on_click=process_pdf)
 
     # Code Details Modal
-    with ui.dialog() as code_details_modal, ui.card().classes("w-full max-w-4xl p-4 gap-4 h-[80vh]"):
+    with ui.dialog() as code_details_modal, ui.card().classes("w-full max-w-6xl p-4 gap-4 h-[80vh]"):
         ui.label("Generated Code Details").classes("text-xl font-bold")
         
         with ui.tabs().classes('w-full') as tabs:
