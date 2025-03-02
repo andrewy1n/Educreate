@@ -1,3 +1,4 @@
+import asyncio
 import sys
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
@@ -19,7 +20,7 @@ class IdeaAgent:
         except Exception as e:
             raise RuntimeError(f"PDF reading failed: {str(e)}")
 
-    def generate_web_app_description(self, pdf_path):
+    async def generate_web_app_description(self, pdf_path):
         pdf_text = self.extract_pdf_text(pdf_path)
         prompt = (
             "Analyze the content below and generate a detailed description (no code) of a simple single page frontend-focused web application that will be written using the NiceGUI framework in Python"
@@ -34,10 +35,14 @@ class IdeaAgent:
 
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
+            stream=True
         )
-        return response.choices[0].message.content
 
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+        
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

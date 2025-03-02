@@ -1,9 +1,12 @@
+import asyncio
+import json
 import re
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import List, Optional
+from fastapi import WebSocket
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -69,20 +72,24 @@ class CodeAgent:
 
         return context
 
-    def llm_query(self, prompt: str, retries=3):
+    async def llm_query_stream(self, prompt: str):
         print("\nSending prompt to LLM...")
 
         response = self.client.chat.completions.create(model="deepseek-reasoner",
                                                 messages=[{"role": "user", "content": prompt}],
-                                                stream=False)
+                                                stream=True)
 
-        message_content = response.choices[0].message.content
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+    
+    def llm_query(self, prompt: str):
+        print("\nSending prompt to LLM...")
 
-        if not message_content:
-            print("Something went wrong, no LLM content!")
-            return ""
+        response = self.client.chat.completions.create(model="deepseek-reasoner",
+                                                messages=[{"role": "user", "content": prompt}])
 
-        return message_content
+        return response.choices[0].message.content
 
     def llm_ui_query(self, prompt: str) -> UI:
         completion = self.openai_client.beta.chat.completions.parse(
@@ -105,7 +112,11 @@ class CodeAgent:
     def execute_code(self, code: str, attempt: int) -> dict:
         result = {"success": False, "error": "", "missing_module": None}
         timestamp = int(time.time())
-        filename = f"generated_code_{timestamp}_attempt_{attempt}.py"
+         # Ensure the directory exists
+        script_dir = Path("generated_scripts")
+        script_dir.mkdir(parents=True, exist_ok=True)
+
+        filename = script_dir / f"generated_code_{timestamp}_attempt_{attempt}.py"
 
         try:
             with open(filename, "w", encoding="utf-8") as f:
@@ -153,20 +164,17 @@ class CodeAgent:
 
         return ui_components
 
-    def self_heal_loop(self, initial_prompt: str, ui_description: str, max_attempts=5, init_code="") -> str:
-        current_prompt = initial_prompt
+    def self_heal_loop(self, initial_prompt: str, max_attempts=5, init_code="") -> str:
         error_history = []
+        current_prompt = initial_prompt
 
         for attempt in range(1, max_attempts + 1):
             print(f"\n--- Attempt {attempt}/{max_attempts} ---")
 
-            # Add the UI components description to the prompt
-            context_prompt = f"{current_prompt}\n\nUI Components:\n{ui_description}"
-
             if attempt == 1 and init_code:
                 response = init_code
             else:
-                response = self.llm_query(context_prompt)
+                response = self.llm_query(current_prompt)
                 
             try:
                 code = self.extract_code(response)
@@ -217,13 +225,9 @@ class CodeAgent:
 
         raise RuntimeError(f"Failed to resolve after {max_attempts} attempts")
 
-    def generate_code(self, app_description: str) -> str:
+    def generate_code(self, app_description: str, ui_description: str) -> str:
         """Main processing pipeline. Returns the generated code as a string."""
         try:
-            # 1. Generate detailed UI components description
-            ui_description = self.generate_ui_description(app_description)
-            
-            # 2. Create initial prompt with UI context
             initial_prompt = (
                 "You are a code generation AI specialized in creating interactive web applications using the NiceGUI framework."
                 "Your task is to utilize the given App Description and UI Description to create a functional web application"
@@ -237,11 +241,7 @@ class CodeAgent:
 
             init_code = self.llm_query(initial_prompt)
 
-            # 3. Start self-healing process
-            final_code = self.self_heal_loop(initial_prompt, ui_description, init_code=init_code)
-
-            # 4. Return the final code as a string
-            return final_code
+            return self.self_heal_loop(initial_prompt, init_code=init_code)
 
         except Exception as e:
             print(f"Critical error: {str(e)}")
