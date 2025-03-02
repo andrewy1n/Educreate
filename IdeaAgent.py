@@ -45,7 +45,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     pdf_path = sys.argv[1]
-    idea_agent = IdeaAgent(pdf_path)
+    idea_agent = IdeaAgent()
 
-    spec_doc = idea_agent.generate_web_app_description()
+    spec_doc = idea_agent.generate_web_app_description(pdf_path=pdf_path)
     print(spec_doc)
