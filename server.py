@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import os
+
 from IdeaAgent import IdeaAgent
 from CodeAgent import CodeAgent
 
@@ -30,19 +31,21 @@ async def process_pdf_websocket(websocket: WebSocket):
         async for chunk in idea_agent.generate_web_app_description(file_path):
             await websocket.send_json({"type": "llm_message", "message": chunk})
             spec_doc += chunk
+        print(spec_doc)
+        # with open("spec_doc_example.txt", "r") as f:
+        #     spec_doc = f.read()
         await websocket.send_text(f"Web app description generated...")
 
-        # Generate UI Components
+        # # Generate UI Components
         await websocket.send_text("Generating UI Components")
         ui_components = code_agent.generate_ui_description(spec_doc)
-        await websocket.send_json({"type": "llm_message_done"})
 
         # Generate code
         await websocket.send_text("Generating code...")
-        init_code = code_agent.generate_code(spec_doc, str(ui_components))
-        await websocket.send_json({"type" : "llm_code_message", "message": init_code})
+        generated_code = code_agent.generate_code(spec_doc, str(ui_components))
+        # with open("implemented_app.py", "r", encoding="utf-8") as f:
+        #     generated_code = f.read()
 
-        generated_code = init_code
         # Send the final result as JSON
         await websocket.send_json({
             "type": "generated_code",

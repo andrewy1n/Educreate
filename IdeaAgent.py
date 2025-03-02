@@ -30,6 +30,7 @@ class IdeaAgent:
             "- User interaction flow\n"
             "- Any special features needed\n\n"
             "Exclude any backend or user-related concepts as this application will be run from a singular file."
+            "Do not create headers larger than # in markdown when generating this response"
             f"Content:\n{pdf_text}"
         )
 

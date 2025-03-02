@@ -1,134 +1,94 @@
 from nicegui import ui
+from dataclasses import dataclass
+from typing import Dict
 
-planet_data = [
-    {"name": "Mercury", "size_relative_to_earth": "0.38", "surface_features": "Cratered", "atmospheric_composition": "Oxygen, Sodium, Hydrogen", "distance_from_sun": "57.9 million km", "habitability": "No"},
-    {"name": "Venus", "size_relative_to_earth": "0.95", "surface_features": "Volcanic", "atmospheric_composition": "Carbon Dioxide, Nitrogen", "distance_from_sun": "108.2 million km", "habitability": "No"},
-    {"name": "Earth", "size_relative_to_earth": "1", "surface_features": "Liquid Water, Landmasses", "atmospheric_composition": "Nitrogen, Oxygen", "distance_from_sun": "149.6 million km", "habitability": "Yes"},    
-    {"name": "Mars", "size_relative_to_earth": "0.53", "surface_features": "Mountains, Valleys", "atmospheric_composition": "Carbon Dioxide, Nitrogen", "distance_from_sun": "227.9 million km", "habitability": "No"}, 
-    {"name": "Jupiter", "size_relative_to_earth": "11.21", "surface_features": "Gas Giant", "atmospheric_composition": "Hydrogen, Helium", "distance_from_sun": "778.5 million km", "habitability": "No"},
-    {"name": "Saturn", "size_relative_to_earth": "9.45", "surface_features": "Gas Giant with Rings", "atmospheric_composition": "Hydrogen, Helium", "distance_from_sun": "1.434 billion km", "habitability": "No"},     
-    {"name": "Uranus", "size_relative_to_earth": "4.01", "surface_features": "Ice Giant", "atmospheric_composition": "Hydrogen, Helium, Methane", "distance_from_sun": "2.871 billion km", "habitability": "No"},       
-    {"name": "Neptune", "size_relative_to_earth": "3.88", "surface_features": "Ice Giant", "atmospheric_composition": "Hydrogen, Helium, Methane", "distance_from_sun": "4.495 billion km", "habitability": "No"},      
-]
+@dataclass
+class Planet:
+    name: str
+    size: str
+    surface: str
+    atmosphere: str
+    distance: str
+    life_support: str
+    facts: str
+    emoji: str
 
-quiz_questions = [
-    {"question": "Which planet is known as the Red Planet?", "options": ["Venus", "Mars", "Jupiter", "Saturn"], "answer": "Mars"},
-    {"question": "Which is the largest planet in our solar system?", "options": ["Earth", "Saturn", "Jupiter", "Neptune"], "answer": "Jupiter"},
-    {"question": "Which planet is closest to the Sun?", "options": ["Mercury", "Venus", "Earth", "Mars"], "answer": "Mercury"},
-]
+planets = {
+    'Earth': Planet('Earth', '1x', '70% Water', 'Nitrogen-Oxygen', '1 AU', 'Yes', 'Only known life-bearing planet', '🌍'),
+    'Mars': Planet('Mars', '0.107x', 'Rocky', 'Carbon Dioxide', '1.5 AU', 'Potential', 'Largest dust storms', '🪐'),
+    'Venus': Planet('Venus', '0.857x', 'Volcanic', 'Carbon Dioxide', '0.7 AU', 'No', 'Hottest planet', '⭐'),
+    'Mercury': Planet('Mercury', '0.383x', 'Rocky', 'Thin Exosphere', '0.39 AU', 'No', 'Closest to the Sun', '☿'),
+    'Jupiter': Planet('Jupiter', '11.209x', 'Gas Giant', 'Hydrogen-Helium', '5.2 AU', 'No', 'Largest planet', '♃'),
+    'Saturn': Planet('Saturn', '9.449x', 'Gas Giant', 'Hydrogen-Helium', '9.58 AU', 'No', 'Has prominent rings', '♄'),
+    'Uranus': Planet('Uranus', '4.007x', 'Ice Giant', 'Hydrogen-Helium-Methane', '19.22 AU', 'No', 'Rotates on its side', '♅'),
+    'Neptune': Planet('Neptune', '3.883x', 'Ice Giant', 'Hydrogen-Helium-Methane', '30.05 AU', 'No', 'Farthest planet from the Sun', '♆'),
+    'Pluto': Planet('Pluto', '0.186x', 'Rocky-Ice', 'Nitrogen-Methane', '39.48 AU', 'No', 'Dwarf planet', '♇'),
+}
 
-notes = ""
+selected_planets: Dict[str, Planet] = {}
 
-def landing_page():
-    ui.label("Welcome to the Solar System Planet Comparator").classes("text-h4")
-    ui.markdown("Explore and compare different planets in our solar system. Learn about their characteristics, engage with interactive modules, take quizzes, and keep your notes all in one place.")
-    ui.button("Start", on_click=show_comparison).classes("mt-4").props("color=primary size=large")
-
-def show_comparison():
-    ui.clear()
-    with ui.header():
-        ui.label("Solar System Planet Comparator").classes("text-2xl")
-        with ui.menu():
-            ui.menu_item("Learning Modules", on_click=show_learning_modules)
-            ui.menu_item("Quizzes", on_click=show_quizzes)
-            ui.menu_item("Notes", on_click=show_notes)
-            ui.menu_item("Settings", on_click=show_settings)
-    with ui.main().classes("p-4"):
-        ui.label("Planet Comparison Chart").classes("text-xl")
-        table = ui.table(columns=["Name", "Size Relative to Earth", "Surface Features", "Atmospheric Composition", "Distance from Sun", "Habitability"], rows=planet_data)
-        table.on_edit(edit_cell)
-        table.on_click_cell(show_planet_info)
-
-def edit_cell(row, column, value):
-    planet_data[row][column] = value
-
-def show_planet_info(row, column):
-    planet = planet_data[row]
-    with ui.dialog().props("max-width=600"):
-        with ui.card():
-            ui.label(planet["name"]).classes("text-2xl")
-            ui.markdown(f"**Size Relative to Earth:** {planet['size_relative_to_earth']}  \n**Surface Features:** {planet['surface_features']}  \n**Atmospheric Composition:** {planet['atmospheric_composition']}  \n**Distance from Sun:** {planet['distance_from_sun']}  \n**Habitability:** {planet['habitability']}")
-            ui.button("Close", on_click=lambda: ui.close())
-
-def show_learning_modules():
-    ui.clear()
-    with ui.header():
-        ui.label("Learning Modules").classes("text-2xl")
-        ui.menu_item("Back to Chart", on_click=back_to_chart)
-    with ui.main().classes("p-4"):
-        ui.label("Gravity").classes("text-xl")
-        ui.markdown("Gravity is the force that attracts two bodies towards each other. It governs the motion of planets around the Sun.")
-        ui.label("Interactive Example").classes("text-lg")
-        ui.button("Animate Gravity", on_click=animate_gravity)
-
-def animate_gravity():
-    with ui.dialog().props("max-width=400"):
-        with ui.card():
-            ui.label("Gravity Animation").classes("text-xl")
-            ui.markdown("*Animation would be here*")
-            ui.button("Close", on_click=lambda: ui.close())
-
-def back_to_chart():
-    ui.clear()
-    show_comparison()
-
-def show_quizzes():
-    ui.clear()
-    with ui.header():
-        ui.label("Quizzes").classes("text-2xl")
-        ui.menu_item("Back to Chart", on_click=back_to_chart)
-    with ui.main().classes("p-4"):
-        for q in quiz_questions:
-            with ui.card().classes("mb-4"):
-                ui.label(q["question"]).classes("text-lg")
-                selected = ui.radio(q["options"], label="", value="", on_change=lambda e, q=q: check_answer(q, e.value))
-
-def check_answer(question, answer):
-    feedback = ui.label("")
-    if answer == question["answer"]:
-        feedback.set_text("Correct!").style("color: green")
+def update_chart(planet_name: str):
+    if planet_name in selected_planets:
+        del selected_planets[planet_name]
     else:
-        feedback.set_text(f"Incorrect. The correct answer is {question['answer']}.").style("color: red")
+        selected_planets[planet_name] = planets[planet_name]
+    comparison_grid.clear()
+    build_comparison_chart()
 
-def show_notes():
-    ui.clear()
-    with ui.header():
-        ui.label("Notes").classes("text-2xl")
-        ui.menu_item("Back to Chart", on_click=back_to_chart)
-    with ui.main().classes("p-4"):
-        ui.textarea("Your Notes", value=notes, on_change=lambda e: save_notes(e.value)).classes("w-full h-64")
-        ui.button("Save", on_click=lambda: ui.notify("Notes saved")).classes("mt-2")
+def build_comparison_chart():
+    if not selected_planets:
+        with comparison_grid:
+            ui.label('Select planets to compare').classes('text-lg')
+        return
 
-def save_notes(value):
-    global notes
-    notes = value
+    with comparison_grid:
+        with ui.grid(columns=len(selected_planets)+1).classes('w-full gap-4'):
+            ui.label('Characteristic').classes('font-bold')
+            for planet in selected_planets.values():
+                ui.label(planet.emoji + ' ' + planet.name).classes('text-xl')
 
-def show_settings():
-    ui.clear()
-    with ui.header():
-        ui.label("Settings").classes("text-2xl")
-        ui.menu_item("Back to Chart", on_click=back_to_chart)
-    with ui.main().classes("p-4"):
-        ui.label("Accessibility Features").classes("text-xl")
-        ui.button("Increase Text Size", on_click=lambda: ui.run_js("document.body.style.fontSize='larger'")).classes("mr-2")
-        ui.button("Decrease Text Size", on_click=lambda: ui.run_js("document.body.style.fontSize='smaller'")).classes("mr-2")
-        ui.button("High Contrast Mode", on_click=lambda: ui.run_js("document.body.style.backgroundColor='black'; document.body.style.color='white'"))
-        ui.button("Normal Mode", on_click=lambda: ui.run_js("document.body.style.backgroundColor='white'; document.body.style.color='black'")).classes("mt-2")
-        ui.label("Printable Summary").classes("text-xl mt-4")
-        ui.button("Print Chart and Notes", on_click=print_summary)
+        characteristics = [
+            ('Size (vs Earth)', 'size'),
+            ('Surface', 'surface'),
+            ('Atmosphere', 'atmosphere'),
+            ('Distance from Sun', 'distance'),
+            ('Life Support', 'life_support'),
+            ('Notable Facts', 'facts'),
+        ]
 
-def print_summary():
-    with ui.dialog().props("max-width=800"):
-        with ui.card():
-            ui.label("Printable Summary").classes("text-xl")
-            ui.markdown("## Planet Comparison Chart")
-            table_html = "<table border='1'><tr><th>Name</th><th>Size Relative to Earth</th><th>Surface Features</th><th>Atmospheric Composition</th><th>Distance from Sun</th><th>Habitability</th></tr>"
-            for planet in planet_data:
-                table_html += f"<tr><td>{planet['name']}</td><td>{planet['size_relative_to_earth']}</td><td>{planet['surface_features']}</td><td>{planet['atmospheric_composition']}</td><td>{planet['distance_from_sun']}</td><td>{planet['habitability']}</td></tr>"
-            table_html += "</table>"
-            ui.markdown(table_html)
-            ui.markdown(f"## Notes\n{notes}")
-            ui.button("Print", on_click=lambda: ui.run_js("window.print()"))
-            ui.button("Close", on_click=lambda: ui.close())
+        for label, key in characteristics:
+            with ui.row().classes('w-full hover:bg-gray-100 p-2 rounded gap-4'):
+                ui.label(label).classes('w-48 font-medium').tooltip(f'Definition of {label}')
+                for planet in selected_planets.values():
+                    ui.label(getattr(planet, key)).classes('flex-1')
+
+        with ui.row().classes('mt-4'):
+            ui.button('Learn More', on_click=show_educational_notes).classes('bg-blue-100 hover:bg-blue-200')
+
+def show_educational_notes():
+    notes = {
+        'Size (vs Earth)': 'Relative diameter compared to Earth',
+        'Atmosphere': 'Primary atmospheric composition',
+        'Distance from Sun': 'Measured in Astronomical Units (AU)',
+    }
+    with ui.dialog() as dialog, ui.card():
+        ui.label('Educational Notes').classes('text-xl mb-4')
+        for term, definition in notes.items():
+            ui.markdown(f'**{term}**: {definition}')
+        ui.button('Close', on_click=dialog.close)
+    dialog.open()
+
+with ui.column().classes('w-full max-w-4xl mx-auto p-8'):
+    ui.label('Comparing Planets in the Solar System').classes('text-3xl mb-4')
+    ui.label('Select planets below to compare their characteristics').classes('text-lg mb-8')
+
+    with ui.row().classes('w-full mb-8 gap-8'):
+        select = ui.select(options=list(planets.keys()), label='Choose Planet', on_change=lambda e: update_chart(e.value)).classes('flex-1')
+
+        with ui.column().classes('flex-1 gap-2'):
+            for planet in planets:
+                ui.button(planet, on_click=lambda _, p=planet: update_chart(p)).classes('w-full')
+
+    comparison_grid = ui.column().classes('w-full')
 
 ui.run()
